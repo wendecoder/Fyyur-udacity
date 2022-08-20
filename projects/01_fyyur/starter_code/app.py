@@ -13,7 +13,7 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
-from flask_migrate import Migrate
+
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -22,12 +22,12 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
-migrate =Migrate(app, db)
-# TODO: connect to a local postgresql database
+
+
 
 #----------------------------------------------------------------------------#
 # Models.
-#----------------------------------------------------------------------------#
+#----------------------------------------------------------------------------
 
 Show = db.Table('shows',
                db.Column('artist_id', db.Integer, db.ForeignKey('artist.id'), primary_key=True),
@@ -96,7 +96,7 @@ class Venue(db.Model):
       self.seeking_talent = seeking_talent
       self.seeking_description = seeking_description
       self.genres = genres
-    
+
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
@@ -266,8 +266,12 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-  # TODO: Complete this endpoint for taking a venue_id, and using
+
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+  obj = Venue.query.filter_by(id = venue_id).first()
+  db.session.delete(obj)
+  db.session.commit()
+
 
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
@@ -377,31 +381,30 @@ def edit_artist(artist_id):
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
   form = ArtistForm()
-  #try:
-  artist = Artist.query.get(artist_id)
-    
-  artist.name = request.form['name']
-  artist.genres = [request.form['genres']]
-  artist.city = request.form['city']
-  artist.state = request.form['state']
-  artist.phone = request.form['phone']
-  artist.website = request.form['website_link']
-  artist.facebook_link = request.form['facebook_link']
-  artist.seeking_venue = request.form['seeking_venue']
-  if artist.seeking_venue == 'y':
-    artist.seeking_venue = True
-  else:
-    artist.seeking_venue = False
-  artist.seeking_description = request.form['seeking_description']
-  artist.image_link = request.form['image_link']
-  db.session.add(artist)
-  db.session.commit()
-  flash("Artist " + request.form['name'] + " had been edited successfully.")
-  #except Exception:
-  #db.session.rollback()
-  #flash("Error occured. Artist " + request.form['name'] + " couldn't be edited.")
-  #finally:
-   # db.session.close()
+  try:
+    artist = Artist.query.get(artist_id)
+    artist.name = request.form['name']
+    artist.genres = [request.form['genres']]
+    artist.city = request.form['city']
+    artist.state = request.form['state']
+    artist.phone = request.form['phone']
+    artist.website = request.form['website_link']
+    artist.facebook_link = request.form['facebook_link']
+    artist.seeking_venue = request.form['seeking_venue']
+    if artist.seeking_venue == 'y':
+      artist.seeking_venue = True
+    else:
+      artist.seeking_venue = False
+    artist.seeking_description = request.form['seeking_description']
+    artist.image_link = request.form['image_link']
+    db.session.add(artist)
+    db.session.commit()
+    flash("Artist " + request.form['name'] + " had been edited successfully.")
+  except Exception:
+    db.session.rollback()
+    flash("Error occured. Artist " + request.form['name'] + " couldn't be edited.")
+  finally:
+    db.session.close()
   # artist record with ID <artist_id> using the new attributes
 
   return redirect(url_for('show_artist', artist_id=artist_id))
@@ -509,7 +512,7 @@ def create_artist_submission():
 @app.route('/shows')
 def shows():
   # displays list of shows at /shows
-  # TODO: replace with real venues data.
+
   shows = db.session.query(Show).join(Artist).all()
   
   data = []
