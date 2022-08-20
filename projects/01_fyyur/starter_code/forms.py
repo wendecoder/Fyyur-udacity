@@ -1,4 +1,5 @@
 from datetime import datetime
+from operator import length_hint
 from flask_wtf import Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField
 from wtforms.validators import DataRequired, AnyOf, URL
@@ -193,7 +194,7 @@ class ArtistForm(Form):
     )
     phone = StringField(
         # TODO implement validation logic for phone 
-        'phone'
+        'phone', validators=[DataRequired()]
     )
     image_link = StringField(
         'image_link'
@@ -237,3 +238,7 @@ class ArtistForm(Form):
             'seeking_description'
      )
 
+class SearchForm(Form):
+    search_term = StringField(
+        'search_term', validators=[DataRequired()]
+    )
